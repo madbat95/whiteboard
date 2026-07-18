@@ -1,0 +1,63 @@
+// Prisma schema for the collaborative whiteboard backend.
+// Models here back the REST contract in /shared/contract.ts:
+// CreateBoardResponse, GetBoardResponse, ListBoardsResponse.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Minimal user record. The frontend authenticates via NextAuth and issues
+// an HS256 JWT (see contract.ts §4); this backend does not own signup/login,
+// it only needs a row to satisfy FK constraints and to serve UserSummary
+// fields (name/avatarUrl/color). Rows are upserted lazily from JWT claims
+// the first time a given user id is seen (see AuthService).
+model User {
+  id        String   @id // uuid, taken from the JWT "sub" claim
+  email     String?  @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  boards Board[]
+
+  @@map("users")
+}
+
+// A Board == a "room" (contract's RoomId is the Board's id, also used as
+// the join-link slug). `objects` holds the current live BoardObject[]
+// (contract §1) as JSON, kept in sync by periodic/manual checkpoints.
+model Board {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  objects   Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  snapshots BoardSnapshot[]
+
+  @@index([ownerId])
+  @@map("boards")
+}
+
+// Append-only checkpoint log. Every auto (30s-if-dirty / room-empty) and
+// manual (PATCH) checkpoint writes both: (a) Board.objects + Board.updatedAt
+// (the "latest" pointer GET reads from) and (b) a new BoardSnapshot row
+// (history of checkpoints, useful for future replay/versioning).
+model BoardSnapshot {
+  id        String   @id @default(uuid())
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  objects   Json
+  createdAt DateTime @default(now())
+
+  @@index([boardId, createdAt])
+  @@map("board_snapshots")
+}
