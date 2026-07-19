@@ -57,6 +57,7 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
   const [saving, setSaving] = useState(false);
   const [boardName, setBoardName] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -78,6 +79,9 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
       })
       .catch((err) => {
         if (!cancelled) setLoadError(err instanceof Error ? err.message : "Failed to load board");
+      })
+      .finally(() => {
+        if (!cancelled) setHydrated(true);
       });
     return () => {
       cancelled = true;
@@ -178,6 +182,14 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
       )}
 
       <div className="relative flex-1">
+        {!hydrated && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white">
+            <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
+              Loading board…
+            </div>
+          </div>
+        )}
         <CanvasBoard
           objects={objects}
           tool={tool}
