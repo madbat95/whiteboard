@@ -1,7 +1,8 @@
 "use client";
 
+import * as React from "react";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import type { BoardObjectPatch, ObjectId, RoomId, ToolType } from "@shared/contract";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useCanvasSync } from "@/hooks/useCanvasSync";
@@ -11,6 +12,8 @@ import { Toolbar } from "@/components/toolbar";
 import { PresenceAvatars } from "@/components/presence-avatars";
 import { CursorLayer } from "@/components/cursor-layer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { boardsApi } from "@/lib/api";
 
 export function BoardClient({ roomId }: { roomId: RoomId }) {
@@ -114,11 +117,7 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
   }
 
   if (status !== "authenticated") {
-    return (
-      <div className="p-6 text-sm">
-        You must sign in first. <a className="underline" href="/">Go home</a>
-      </div>
-    );
+    return <BoardSignIn />;
   }
 
   return (
@@ -196,5 +195,42 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
         <CursorLayer cursors={cursors} users={users} />
       </div>
     </div>
+  );
+}
+
+/** Inline sign-in for someone who opened an invite link while signed out —
+ * signs in without leaving the page so they land straight in the room they
+ * clicked into, instead of being redirected home and losing the roomId. */
+function BoardSignIn() {
+  const [displayName, setDisplayName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!displayName.trim()) return;
+    setSubmitting(true);
+    await signIn("credentials", { name: displayName.trim(), redirect: false });
+    setSubmitting(false);
+  }
+
+  return (
+    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Join board</h1>
+        <p className="text-sm text-muted-foreground">Enter your name to join this board.</p>
+      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-lg border p-4">
+        <Label htmlFor="boardDisplayName">Your name</Label>
+        <Input
+          id="boardDisplayName"
+          placeholder="e.g. Ada"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+        />
+        <Button type="submit" disabled={!displayName.trim() || submitting}>
+          {submitting ? "Joining…" : "Join"}
+        </Button>
+      </form>
+    </main>
   );
 }
