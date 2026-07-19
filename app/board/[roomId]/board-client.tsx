@@ -54,6 +54,13 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
   const [saving, setSaving] = useState(false);
   const [boardName, setBoardName] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
 
   // F10: hydrate from REST on mount.
   useEffect(() => {
@@ -136,9 +143,12 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigator.clipboard?.writeText(inviteUrl)}
+          onClick={() => {
+            navigator.clipboard?.writeText(inviteUrl);
+            setCopied(true);
+          }}
         >
-          Copy invite link
+          {copied ? "Copied!" : "Copy invite link"}
         </Button>
         <div className="ml-auto">
           <PresenceAvatars users={users} />
