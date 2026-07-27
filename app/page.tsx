@@ -44,7 +44,10 @@ export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold">Whiteboard</h1>
+        <div className="flex items-center gap-2">
+          <img src="/icon.svg" alt="" width={28} height={28} className="rounded-[6px]" />
+          <h1 className="text-2xl font-semibold">Whiteboard</h1>
+        </div>
         <p className="text-sm text-muted-foreground">
           Real-time collaborative whiteboard.
         </p>
