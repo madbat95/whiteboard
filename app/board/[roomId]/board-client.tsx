@@ -128,8 +128,8 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
   return (
     <div className="flex h-screen flex-col">
       <header className="flex items-center gap-3 border-b px-4 py-2">
-        <Link href="/" className="text-sm text-muted-foreground underline">
-          Home
+        <Link href="/" aria-label="Home" className="flex-shrink-0">
+          <img src="/icon.svg" alt="" width={24} height={24} className="rounded-[5px]" />
         </Link>
         <h1 className="text-sm font-medium">{boardName ?? "Board"}</h1>
         <span
