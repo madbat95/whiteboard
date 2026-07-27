@@ -48,6 +48,18 @@ export function CanvasBoard({
   const [draft, setDraft] = useState<BoardObject | null>(null);
   const drawingRef = useRef<{ mode: "draw" | "drag"; startPoint: Point; objectId?: ObjectId } | null>(null);
   const [textEditor, setTextEditor] = useState<{ x: number; y: number } | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Focus the textarea after the browser's own default focus-shift for the
+  // click that created it has already settled — grabbing focus synchronously
+  // (e.g. via the autoFocus attribute) races that default behavior and gets
+  // immediately undone, which also made clicking away commit nothing since
+  // the previous box needs that same default blur to fire naturally.
+  useEffect(() => {
+    if (!textEditor) return;
+    const raf = requestAnimationFrame(() => textareaRef.current?.focus());
+    return () => cancelAnimationFrame(raf);
+  }, [textEditor]);
 
   // Resize canvas to fill container, accounting for devicePixelRatio.
   useEffect(() => {
@@ -106,11 +118,6 @@ export function CanvasBoard({
       }
 
       if (tool === "text") {
-        // The canvas isn't focusable, so completing a click on it makes the
-        // browser shift focus back to the document by default — which
-        // blurs the input we're about to autoFocus, in the same gesture
-        // that created it. preventDefault suppresses that focus shift.
-        e.preventDefault();
         setTextEditor({ x: point.x, y: point.y });
         return;
       }
@@ -256,7 +263,7 @@ export function CanvasBoard({
       />
       {textEditor && (
         <textarea
-          autoFocus
+          ref={textareaRef}
           rows={1}
           data-testid="text-editor-input"
           className="absolute resize-none overflow-hidden rounded border-2 border-blue-500 bg-white px-1 text-sm leading-tight text-black outline-none"
