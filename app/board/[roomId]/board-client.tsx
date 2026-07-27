@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import type { BoardObjectPatch, ObjectId, RoomId, ToolType } from "@shared/contract";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -127,6 +128,9 @@ export function BoardClient({ roomId }: { roomId: RoomId }) {
   return (
     <div className="flex h-screen flex-col">
       <header className="flex items-center gap-3 border-b px-4 py-2">
+        <Link href="/" className="text-sm text-muted-foreground underline">
+          Home
+        </Link>
         <h1 className="text-sm font-medium">{boardName ?? "Board"}</h1>
         <span
           className="rounded px-1.5 py-0.5 text-xs"

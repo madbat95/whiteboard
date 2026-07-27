@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession, signIn } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,6 @@ export default function HomePage() {
 
   const [displayName, setDisplayName] = useState("");
   const [boardName, setBoardName] = useState("My Board");
-  const [joinRoomId, setJoinRoomId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,13 +41,6 @@ export default function HomePage() {
     }
   }
 
-  function handleJoin(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = joinRoomId.trim();
-    if (!trimmed) return;
-    router.push(`/board/${trimmed}`);
-  }
-
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 p-6">
       <div>
@@ -56,6 +48,14 @@ export default function HomePage() {
         <p className="text-sm text-muted-foreground">
           Real-time collaborative whiteboard.
         </p>
+        {authed && session?.user?.name && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Signed in as <span className="font-medium">{session.user.name}</span>{" "}
+            <button type="button" className="underline" onClick={() => signOut()}>
+              Not you?
+            </button>
+          </p>
+        )}
       </div>
 
       {!authed ? (
@@ -82,19 +82,6 @@ export default function HomePage() {
             />
             <Button type="submit" disabled={busy}>
               {busy ? "Creating…" : "Create board"}
-            </Button>
-          </form>
-
-          <form onSubmit={handleJoin} className="flex flex-col gap-3 rounded-lg border p-4">
-            <Label htmlFor="roomId">Join via room ID</Label>
-            <Input
-              id="roomId"
-              placeholder="room id"
-              value={joinRoomId}
-              onChange={(e) => setJoinRoomId(e.target.value)}
-            />
-            <Button type="submit" variant="secondary" disabled={!joinRoomId.trim()}>
-              Join board
             </Button>
           </form>
 
