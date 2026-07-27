@@ -49,6 +49,11 @@ export function CanvasBoard({
   const drawingRef = useRef<{ mode: "draw" | "drag"; startPoint: Point; objectId?: ObjectId } | null>(null);
   const [textEditor, setTextEditor] = useState<{ x: number; y: number } | null>(null);
 
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[text-tool] textEditor state:", textEditor);
+  }, [textEditor]);
+
   // Resize canvas to fill container, accounting for devicePixelRatio.
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -89,6 +94,8 @@ export function CanvasBoard({
     (e: React.PointerEvent) => {
       const point = getPoint(e);
       (e.target as Element).setPointerCapture?.(e.pointerId);
+      // eslint-disable-next-line no-console
+      console.log("[text-tool] pointerdown, tool =", tool, "point =", point);
 
       if (tool === "select") {
         const hit = hitTestAll(objects, point);
@@ -253,8 +260,8 @@ export function CanvasBoard({
         <input
           autoFocus
           data-testid="text-editor-input"
-          className="absolute rounded border border-primary bg-white px-1 text-sm outline-none"
-          style={{ left: textEditor.x, top: textEditor.y - 12 }}
+          className="absolute rounded border-2 border-blue-500 bg-white px-1 text-sm text-black outline-none"
+          style={{ left: textEditor.x, top: textEditor.y - 12, minWidth: 120, zIndex: 50 }}
           onBlur={(e) => commitText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") (e.target as HTMLInputElement).blur();
