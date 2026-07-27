@@ -49,11 +49,6 @@ export function CanvasBoard({
   const drawingRef = useRef<{ mode: "draw" | "drag"; startPoint: Point; objectId?: ObjectId } | null>(null);
   const [textEditor, setTextEditor] = useState<{ x: number; y: number } | null>(null);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log("[text-tool] textEditor state:", textEditor);
-  }, [textEditor]);
-
   // Resize canvas to fill container, accounting for devicePixelRatio.
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -94,8 +89,6 @@ export function CanvasBoard({
     (e: React.PointerEvent) => {
       const point = getPoint(e);
       (e.target as Element).setPointerCapture?.(e.pointerId);
-      // eslint-disable-next-line no-console
-      console.log("[text-tool] pointerdown, tool =", tool, "point =", point);
 
       if (tool === "select") {
         const hit = hitTestAll(objects, point);
@@ -113,6 +106,11 @@ export function CanvasBoard({
       }
 
       if (tool === "text") {
+        // The canvas isn't focusable, so completing a click on it makes the
+        // browser shift focus back to the document by default — which
+        // blurs the input we're about to autoFocus, in the same gesture
+        // that created it. preventDefault suppresses that focus shift.
+        e.preventDefault();
         setTextEditor({ x: point.x, y: point.y });
         return;
       }
