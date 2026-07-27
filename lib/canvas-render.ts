@@ -53,7 +53,10 @@ export function drawObject(ctx: CanvasRenderingContext2D, obj: BoardObject) {
       ctx.fillStyle = obj.color;
       ctx.font = `${obj.fontSize}px sans-serif`;
       ctx.textBaseline = "alphabetic";
-      ctx.fillText(obj.content, obj.x, obj.y);
+      const lineHeight = obj.fontSize * 1.2;
+      obj.content.split("\n").forEach((line, i) => {
+        ctx.fillText(line, obj.x, obj.y + i * lineHeight);
+      });
       break;
     }
   }
@@ -100,8 +103,10 @@ function drawSelectionOutline(ctx: CanvasRenderingContext2D, obj: BoardObject) {
     x = Math.min(...xs); y = Math.min(...ys);
     w = Math.max(...xs) - x; h = Math.max(...ys) - y;
   } else if (obj.type === "text") {
+    const lines = obj.content.split("\n");
+    const longest = Math.max(...lines.map((l) => l.length));
     x = obj.x; y = obj.y - obj.fontSize;
-    w = obj.content.length * obj.fontSize * 0.6; h = obj.fontSize * 1.3;
+    w = longest * obj.fontSize * 0.6; h = obj.fontSize * 1.2 * lines.length + obj.fontSize * 0.1;
   }
   ctx.strokeRect(x - 4, y - 4, w + 8, h + 8);
   ctx.restore();

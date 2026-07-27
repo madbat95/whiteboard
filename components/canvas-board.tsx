@@ -255,15 +255,21 @@ export function CanvasBoard({
         data-testid="canvas-surface"
       />
       {textEditor && (
-        <input
+        <textarea
           autoFocus
+          rows={1}
           data-testid="text-editor-input"
-          className="absolute rounded border-2 border-blue-500 bg-white px-1 text-sm text-black outline-none"
+          className="absolute resize-none overflow-hidden rounded border-2 border-blue-500 bg-white px-1 text-sm leading-tight text-black outline-none"
           style={{ left: textEditor.x, top: textEditor.y - 12, minWidth: 120, zIndex: 50 }}
           onBlur={(e) => commitText(e.target.value)}
+          onInput={(e) => {
+            const el = e.target as HTMLTextAreaElement;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight}px`;
+          }}
           onKeyDown={(e) => {
-            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
             if (e.key === "Escape") setTextEditor(null);
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) (e.target as HTMLTextAreaElement).blur();
           }}
         />
       )}
